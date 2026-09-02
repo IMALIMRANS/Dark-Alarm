@@ -1,0 +1,44 @@
+[
+  {
+    "id": "extreme_siren",
+    "fileName": "classic-Alert.wav",
+    "displayName": "🚨 Extreme Siren Alert",
+    "description": "Piercing multi-pitch siren sweeps (Impossible to sleep)",
+    "tag": "Emergency"
+  },
+  {
+    "id": "atomic_evacuation",
+    "fileName": "Coooooo.mp3",
+    "displayName": "☢️ Nuclear Evacuation Alarm",
+    "description": "Deep relentless warning warhorn beats",
+    "tag": "Aggressive"
+  },
+  {
+    "id": "police_pursuit",
+    "fileName": "Alert.mp3",
+    "displayName": "🚓 Police Pursuit Warble",
+    "description": "Rapid alternating high-frequency wake tones",
+    "tag": "Piercing"
+  },
+  {
+    "id": "rooster_loud",
+    "fileName": "chicken.wav",
+    "displayName": "🐓 Super Loud Morning Rooster",
+    "description": "Lively aggressive wake-up morning harmonics",
+    "tag": "Loud"
+  },
+  {
+    "id": "energetic_siren",
+    "fileName": "li-li-funny-sound.mp3",
+    "displayName": "😂 Lili Lili Funny Sound",
+    "description": "High-tempo vibrant pulsing synth melody",
+    "tag": "Funny"
+  },
+  {
+    "id": "sunrise_bells",
+    "fileName": "Kiring-Kiring.mp3",
+    "displayName": "🔔 Sunrise Acoustic Bells",
+    "description": "Resonant bright morning harmony bells",
+    "tag": "Acoustic"
+  }
+]
