@@ -1,0 +1,12 @@
+Dark Alarm is a modern, feature-packed, fully offline smart alarm clock application built for Android using Jetpack Compose and Material 3 design.
+
+Features:
+• Customizable Alarms: Set repeating schedules, custom alarm labels, and independent volume controls with volume locking.
+• Smart Wake-Up Challenges:
+  - Math Challenge: Solve arithmetic problems before dismissing the alarm.
+  - Scan Object Challenge: Verify your surroundings using local camera image matching (dHash/aHash/HOG computer vision).
+• Extreme Mode: Prevents accidental dismissal or snoozing without completing the assigned challenge.
+• Custom Sound Player: Built-in ringtones and support for custom audio tones.
+• Reboot Restoration: Automatically reschedules active alarms after device reboots.
+• Privacy First & 100% Offline: Operates entirely on-device without internet access, tracking, analytics, or external accounts.
+• Modern Jetpack Compose UI: Smooth dark-themed interface built according to Material 3 design principles.
