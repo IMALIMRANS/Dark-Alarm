@@ -1,0 +1,8 @@
+{
+  "name": "Dark Alarm",
+  "description": "Dark Alarm is a reliable smart alarm app with customizable schedules, volume lock, Math challenges, object scan verification, and developer settings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
