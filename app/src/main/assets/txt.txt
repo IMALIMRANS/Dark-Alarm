@@ -1,0 +1,277 @@
+==================================================
+DARK ALARM v2.0 — F-DROID COMPATIBILITY AUDIT
+
+Project:
+Dark Alarm
+
+Package:
+com.imalimrans.darkalarm
+
+Version:
+2.0
+
+Repository:
+https://github.com/IMALIMRANS/Dark-Alarm
+
+Existing distribution:
+APKPure
+
+Audit mode:
+READ-ONLY — NO PROJECT MODIFICATIONS
+
+---
+
+1. EXECUTIVE SUMMARY
+
+---
+
+Dark Alarm v2.0 is a feature-rich Android alarm clock application designed with modern Jetpack Compose UI, Room database, alarm scheduling, custom sound player, and a local computer vision image matching challenge ("Scan Object").
+
+The current APK published on APKPure is fully functional. However, in its present state on the main branch, the codebase CANNOT be accepted into the official F-Droid repository because it links against proprietary Google/Firebase SDKs (Firebase AI and Firebase App Check reCAPTCHA) and applies the Google Services Gradle plugin.
+
+The core local features (Room DB, AlarmScheduler, custom audio playback, and local dHash/aHash/HOG image matching in ScanMatcherEngine) are 100% FOSS-compatible and execute entirely on-device without cloud or proprietary dependencies.
+
+To prepare the app for F-Droid without breaking the existing APKPure release, a dual-target Gradle Product Flavors approach ("full" vs "fdroid") is required.
+
+Overall Assessment: 🟡 REQUIRES CHANGES (F-Droid Build Variant & License File needed).
+
+---
+
+2. 🟢 F-DROID COMPATIBLE
+
+---
+
+- Local Computer Vision Engine (ScanMatcherEngine.kt): Implements dHash, aHash, HOG, and color histogram analysis 100% locally on Android CPU via standard Kotlin bitmap algorithms without ML Kit or external APIs.
+- Room Local Database (AppDatabase.kt, AlarmDao.kt, AlarmRepository.kt): Clean local SQLite persistence using standard Android Jetpack Room with KSP.
+- Alarm Scheduling Infrastructure (AlarmScheduler.kt, AlarmReceiver.kt, AlarmRingingService.kt, BootReceiver.kt): Uses Android AlarmManager, WakeLock, and Foreground Services properly.
+- UI Framework: 100% Jetpack Compose with Material 3 design system.
+- Jetpack & AndroidX Core Libraries: Core-ktx, Lifecycle, Activity Compose, Navigation Compose, CameraX, WorkManager.
+- Third-Party FOSS Libraries: Coil Compose (Apache 2.0), Kotlinx Serialization (Apache 2.0).
+- Permissions: All permissions requested in AndroidManifest.xml are legitimate and necessary for a reliable alarm app (SCHEDULE_EXACT_ALARM, USE_EXACT_ALARM, RECEIVE_BOOT_COMPLETED, FOREGROUND_SERVICE, CAMERA, WAKE_LOCK, SYSTEM_ALERT_WINDOW).
+
+---
+
+3. 🟡 NEEDS REVIEW / MODIFICATION
+
+---
+
+- File/path: root directory
+  Component: License file
+  Problem: Missing root LICENSE or COPYING file (e.g. GPL-3.0 or Apache-2.0).
+  Why it matters: F-Droid requires an explicit OSI-approved FOSS license file at the repository root.
+  F-Droid impact: Blocks inclusion until added.
+  Risk to existing APKPure version: ZERO risk.
+  Recommended action: Add a root LICENSE file (e.g., GPL-3.0-or-later).
+  MUST THIS BE CHANGED? YES
+
+- File/path: app/src/main/assets/
+  Component: Bundled audio assets (Alert.mp3, Coooooo.mp3, Kiring-Kiring.mp3, chicken.wav, classic-Alert.wav, li-li-funny-sound.mp3)
+  Problem: Clear licensing provenance/attribution for bundled sound files is not documented.
+  Why it matters: F-Droid requires all bundled media to be FOSS / Creative Commons / Public Domain compatible.
+  F-Droid impact: May cause review flag if licensing is unclear.
+  Risk to existing APKPure version: ZERO risk.
+  Recommended action: Document license sources for each audio file in sounds.json or ASSETS_LICENSE.md.
+  MUST THIS BE CHANGED? YES
+
+- File/path: app/build.gradle.kts & build.gradle.kts
+  Component: secrets-gradle-plugin
+  Problem: Secrets Gradle plugin is applied to extract secrets from .env into BuildConfig.
+  Why it matters: F-Droid build server builds from clean public source without local .env files.
+  F-Droid impact: Build must succeed cleanly when secrets are absent or defaulted.
+  Risk to existing APKPure version: LOW risk.
+  Recommended action: Ensure BuildConfig fields fall back safely to empty strings or mock providers when secrets are missing.
+  MUST THIS BE CHANGED? YES
+
+---
+
+4. 🔴 F-DROID BLOCKERS
+
+---
+
+- File/path: gradle/libs.versions.toml & app/build.gradle.kts
+  Component: com.google.firebase:firebase-ai:16.2.0
+  Exact reason: Proprietary Google Firebase AI Client Library.
+  F-Droid policy concern: Violates F-Droid inclusion policy banning non-free / closed-source SDKs and Google Play Services proprietary libraries.
+  Why it blocks inclusion: Inclusion of non-free binaries or client SDKs automatically fails F-Droid submission.
+  Safest possible solution: Introduce Gradle Product Flavors ("full" for APKPure, "fdroid" for F-Droid). Move firebase-ai to fullImplementation only.
+  Risk to existing app: ZERO risk if isolated via "full" flavor.
+  MUST THIS BE CHANGED? YES
+
+- File/path: gradle/libs.versions.toml & app/build.gradle.kts
+  Component: com.google.firebase:firebase-appcheck-recaptcha:16.1.2
+  Exact reason: Proprietary Google Firebase App Check / reCAPTCHA SDK.
+  F-Droid policy concern: Closed-source attestation, tracking, and Google reCAPTCHA integration.
+  Why it blocks inclusion: Violates F-Droid anti-features policy and open-source build rule.
+  Safest possible solution: Move firebase-appcheck-recaptcha to fullImplementation only, disabling App Check in the "fdroid" flavor.
+  Risk to existing app: ZERO risk if isolated via "full" flavor.
+  MUST THIS BE CHANGED? YES
+
+- File/path: app/build.gradle.kts
+  Component: com.google.gms.google-services plugin
+  Exact reason: Google Services Gradle plugin hook.
+  F-Droid policy concern: Expects google-services.json and hooks proprietary Google client initialization into the build.
+  Why it blocks inclusion: F-Droid build server cannot build apps requiring proprietary Google Services setup files.
+  Safest possible solution: Apply google-services plugin conditionally or only in the "full" build flavor.
+  Risk to existing app: ZERO risk if maintained in "full" flavor.
+  MUST THIS BE CHANGED? YES
+
+---
+
+5. DEPENDENCY LICENSE AUDIT
+
+---
+
+Dependency | Version | Purpose | License | F-Droid Status
+---------------------------------------------------------------------------------------------------
+androidx.core:core-ktx | 1.15.0 | Android KTX extensions | Apache 2.0 | ✅ FOSS Compliant
+androidx.lifecycle:* | 2.8.7 | ViewModel & Lifecycle | Apache 2.0 | ✅ FOSS Compliant
+androidx.activity:activity-compose | 1.9.3 | Jetpack Compose Activity | Apache 2.0 | ✅ FOSS Compliant
+androidx.compose.ui:* | 2024.11.00 | Compose UI Framework | Apache 2.0 | ✅ FOSS Compliant
+androidx.compose.material3:material3 | 2024.11.00 | Material 3 Design | Apache 2.0 | ✅ FOSS Compliant
+androidx.navigation:navigation-compose | 2.8.4 | Compose Navigation | Apache 2.0 | ✅ FOSS Compliant
+androidx.room:* | 2.6.1 | Local Database | Apache 2.0 | ✅ FOSS Compliant
+androidx.camera:* | 1.4.0 | CameraX for Scan Challenge | Apache 2.0 | ✅ FOSS Compliant
+androidx.work:work-runtime-ktx | 2.10.0 | Background WorkManager | Apache 2.0 | ✅ FOSS Compliant
+io.coil-kt:coil-compose | 2.6.0 | Image Loading | Apache 2.0 | ✅ FOSS Compliant
+kotlinx-serialization-json | 1.7.3 | JSON Serialization | Apache 2.0 | ✅ FOSS Compliant
+com.google.firebase:firebase-ai | 16.2.0 | Gemini AI integration | Proprietary | 🔴 NON-FREE (Blocker)
+com.google.firebase:firebase-appcheck-recaptcha | 16.1.2 | Security attestation | Proprietary | 🔴 NON-FREE (Blocker)
+
+---
+
+6. FIREBASE / GEMINI AUDIT
+
+---
+
+- What is used:
+  1. `com.google.firebase:firebase-ai:16.2.0` is used for remote Gemini model interactions (e.g., generating math challenges or processing prompt requests if configured).
+  2. `com.google.firebase:firebase-appcheck-recaptcha:16.1.2` is used for App Check attestation protecting the Firebase backend.
+  3. `com.google.gms.google-services` plugin handles Google services initialization.
+
+- F-Droid Compatibility Status:
+  The Firebase AI and App Check SDKs are proprietary Google client libraries. Official F-Droid repository policies strictly forbid bundling proprietary libraries.
+  However, the app's local fallback features (local MathChallengeEngine and local ScanMatcherEngine) function completely offline without Firebase or Gemini.
+
+- Recommendation for F-Droid:
+  Use Gradle Product Flavors (`full` vs `fdroid`). In the `fdroid` variant, disable Firebase/Gemini SDKs entirely or replace them with a generic, direct HTTP/REST open-source client calling an optional user-provided custom API key endpoint.
+
+---
+
+7. API / NETWORK AUDIT
+
+---
+
+1. Firebase / Gemini API:
+   - Endpoint: Google Firebase / Gemini REST & gRPC endpoints.
+   - Purpose: Optional remote AI features (math challenge generation / AI prompts).
+   - Core requirement: NO. App has full local MathChallengeEngine and local ScanMatcherEngine.
+   - Proprietary Service: YES.
+   - F-Droid Objection: YES (requires NonFreeNet anti-feature tag if kept, or complete removal/isolation in fdroid flavor).
+
+2. Local Operations (No Network):
+   - Scan Object challenge: 100% on-device local Kotlin computer vision processing.
+   - Alarm playback & scheduling: 100% local on-device.
+   - Database operations: 100% local Room SQLite DB.
+
+---
+
+8. PERMISSION AUDIT
+
+---
+
+- android.permission.SCHEDULE_EXACT_ALARM: Required to schedule precise alarm wake-up triggers via AlarmManager.
+- android.permission.USE_EXACT_ALARM: Required on Android 13+ to ensure exact alarm timing.
+- android.permission.RECEIVE_BOOT_COMPLETED: Required to reschedule alarms after device reboot (BootReceiver.kt).
+- android.permission.FOREGROUND_SERVICE: Required to keep the alarm ringing service active.
+- android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK: Required on Android 14+ to play alarm audio streams in foreground service.
+- android.permission.POST_NOTIFICATIONS: Required on Android 13+ to display ringing notifications and alarm status.
+- android.permission.CAMERA: Required for reference photo capture and live preview scanning in ScanChallengeView.kt.
+- android.permission.WAKE_LOCK: Required to awaken CPU and turn on screen when an alarm fires.
+- android.permission.DISABLE_KEYGUARD: Required to show AlarmRingingActivity over the device lock screen.
+- android.permission.SYSTEM_ALERT_WINDOW: Required for emergency full-screen alarm overlay presentation.
+- android.permission.VIBRATE: Required to trigger haptic vibration during alarm ringing.
+- android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS: Required to prevent OEM Android battery savers from killing scheduled alarms.
+
+---
+
+9. SECRET / API KEY AUDIT
+
+---
+
+- Inspection Result:
+  The repository contains `.env.example` defining `GEMINI_API_KEY`.
+  The `secrets-gradle-plugin` is configured in `app/build.gradle.kts` to expose properties from `.env` via `BuildConfig`.
+  Source code references `BuildConfig.GEMINI_API_KEY`.
+- Key Exposure Check:
+  NO actual secret key values or private credentials were found committed in the public source files or resources. `.env` is properly excluded via `.gitignore`.
+- F-Droid Impact:
+  The app must compile and run gracefully without crashing when `BuildConfig.GEMINI_API_KEY` is an empty string.
+
+---
+
+10. ASSET / COPYRIGHT / LICENSE AUDIT
+
+---
+
+- Visual Assets & Graphics:
+  App icons and images in `res/drawable/` (`morning_wakeup_art_1787068199422.jpg`, `smart_alarm_icon_1787068186953.jpg`) are project assets.
+- Audio Assets:
+  Files in `app/src/main/assets/` (`Alert.mp3`, `Coooooo.mp3`, `Kiring-Kiring.mp3`, `chicken.wav`, `classic-Alert.wav`, `li-li-funny-sound.mp3`, `sounds.json`).
+- Recommendation:
+  Ensure all audio files are under FOSS-compatible licenses (e.g. CC0 / Public Domain / CC-BY) and document them in `sounds.json` or an `ASSETS_LICENSE.md` file.
+
+---
+
+11. BUILDABILITY AUDIT
+
+---
+
+- Current Buildability on F-Droid Infrastructure:
+  FAIL. F-Droid build servers will fail because:
+  1. No root `LICENSE` file exists.
+  2. The build script applies `com.google.gms.google-services` plugin and downloads proprietary `firebase-ai` and `firebase-appcheck-recaptcha` SDKs.
+  3. Missing `google-services.json` on clean checkout.
+
+- Buildability After Flavor Refactoring:
+  PASS. Once the `fdroid` build flavor is introduced without Google/Firebase plugins, F-Droid automated build tools will build the APK directly from source.
+
+---
+
+12. REQUIRED CHANGES — SAFE ORDER
+
+---
+
+Do NOT make these changes now. This is the recommended step-by-step roadmap for future execution:
+
+Step 1: Add an OSI-approved FOSS LICENSE file (e.g. GPL-3.0-or-later) at the repository root.
+Step 2: Update `app/build.gradle.kts` to introduce `flavorDimensions += "target"` with `full` and `fdroid` product flavors.
+Step 3: Move `firebase-ai`, `firebase-appcheck-recaptcha`, and `google-services` plugin to `full` flavor configurations only.
+Step 4: Abstract AI engine interface (`AiEngine`) into `src/full/java/` (Firebase AI) and `src/fdroid/java/` (No-op/Local fallback).
+Step 5: Document asset licenses for bundled audio files in `app/src/main/assets/`.
+Step 6: Verify `fdroid` build variant compiles cleanly with `gradle assembleFdroidRelease`.
+Step 7: Submit build recipe to F-Droid `fdroiddata` repository.
+
+---
+
+13. FINAL VERDICT
+
+---
+
+🟡 REQUIRES CHANGES
+
+Reason:
+Dark Alarm v2.0 has an outstanding local architecture (100% offline computer vision, Room database, alarm scheduling, custom sound player). However, its main branch currently includes proprietary Firebase AI and App Check SDKs and lacks an explicit root open-source license file. Implementing a "fdroid" Gradle product flavor and adding a root LICENSE file will render the project 100% compliant and ready for F-Droid publication.
+
+---
+
+14. APKPURE SAFETY WARNING
+
+---
+
+To preserve the existing working release on APKPure, NEVER modify or delete the following:
+- Package Name / Application ID (`com.imalimrans.darkalarm` / `com.aistudio.darkalarm.z18j`)
+- Room Database schema / entities (`Alarm.kt`, `AlarmDao.kt`, `AppDatabase.kt`)
+- AlarmScheduler intent actions & receiver class names (`AlarmReceiver`, `BootReceiver`, `AlarmRingingService`)
+- Existing `full` build configuration and Firebase AI integration used by APKPure users.
+
+==================================================
